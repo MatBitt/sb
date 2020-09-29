@@ -10,7 +10,7 @@ using namespace std;
 
 map<string, vector<int>> getInstrucoes(){
     map<string, vector<int>> instrucao;
-    // instrucao = {operando, codigo, tamanho}
+    // instrucao = {operando, tamanho, código}
     instrucao["ADD"] = {1, 2, 1};
     instrucao["SUB"] = {1, 2, 2};
     instrucao["MULT"] = {1, 2, 3};

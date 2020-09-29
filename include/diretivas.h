@@ -21,6 +21,4 @@ map<string, vector<int>> getDiretivas(){
     return diretiva;
 }
 
-
-
 #endif
