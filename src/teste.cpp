@@ -22,6 +22,66 @@ string padronizar(string linha){
     return linha;
 }
 
+void pre_processamento(char *argv){
+    map<string, int> tabela_equ;
+    string arquivo = string(argv).substr(0, string(argv).find(".asm"));
+
+    fstream arquivo_raw;
+    arquivo_raw.open(arquivo + ".asm", ios::in);
+    if(!arquivo_raw.is_open())
+    {
+        cout << "Erro ao abrir o arquivo original!" << endl;
+        exit(0);
+    }
+    else{
+        string linha;
+        // Antes de Section Text
+        while(getline(arquivo_raw, linha)){
+            vector<std::string> palavras;
+            string aux;
+            padronizar(linha);
+            split(linha, palavras);
+
+            if(palavras[0][palavras[0].length()-1] == ':'){
+                aux = palavras[0].substr(0, palavras[0].find(':'));
+                if(palavras.size() == 1){
+                    do{
+                        getline(arquivo_raw, linha);
+                        padronizar(linha);
+                        split(linha, palavras);
+                    }while(palavras.empty());
+                    tabela_equ[aux] = stoi(palavras[1]);
+
+                }else{
+                    tabela_equ[aux] = stoi(palavras[2]);
+                }
+            }else{
+                break;
+            }
+        }
+
+         // Depois de Section Text
+        fstream arquivo_preprocessado;
+        arquivo_preprocessado.open(arquivo + ".pre", ios::in);
+
+        while(getline(arquivo_raw, linha)){
+            if(!arquivo_raw.is_open())
+            {
+                cout << "Erro ao abrir o arquivo pre processado!" << endl;
+                exit(0);
+            }
+            else{
+                // Procura IF, se tiver ve o equ e decide o que fazer
+
+                // De resto, padroniza e poe no arquivo pre processado
+                
+            }
+        }
+    arquivo_preprocessado.close();
+    }
+    arquivo_raw.close();
+}
+
 map<string, int> primeira_passagem(char *argv){
     map<string, int> tabela_de_simbolos;
     fstream arquivo;
