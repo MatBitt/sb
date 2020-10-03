@@ -64,6 +64,8 @@ void pre_processamento(char *argv){
         fstream arquivo_preprocessado;
         arquivo_preprocessado.open(arquivo + ".pre", ios::in);
 
+        // Escrever Section Text
+
         while(getline(arquivo_raw, linha)){
             if(!arquivo_raw.is_open())
             {
@@ -71,10 +73,41 @@ void pre_processamento(char *argv){
                 exit(0);
             }
             else{
-                // Procura IF, se tiver ve o equ e decide o que fazer
-
-                // De resto, padroniza e poe no arquivo pre processado
-                
+                vector<std::string> palavras;
+                string aux;
+                padronizar(linha);
+                split(linha, palavras);
+                if(palavras[0] == "IF"){
+                    if(tabela_equ[palavras[1]] == 0){
+                        do{
+                            getline(arquivo_raw, linha);
+                            padronizar(linha);
+                            split(linha, palavras);
+                        }while(palavras.empty());
+                        continue;
+                    }else{
+                        do{
+                            getline(arquivo_raw, linha);
+                            padronizar(linha);
+                            split(linha, palavras);
+                        }while(palavras.empty());
+                        // Escreve linha no arquivo
+                    }
+                }else if(palavras[0][palavras[0].length()-1] == ':'){
+                    if(palavras.size() > 1){
+                        // escreve a linha toda no arquivo
+                    }else{
+                        // escreve a primeira palavra
+                        do{
+                            getline(arquivo_raw, linha);
+                            padronizar(linha);
+                            split(linha, palavras);
+                        }while(palavras.empty());
+                        // escreve o resto
+                    }
+                }else if(palavras.size() != 0){
+                    // escreve a linha
+                }              
             }
         }
     arquivo_preprocessado.close();
