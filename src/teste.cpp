@@ -5,123 +5,22 @@
 #include "utilidade.h"
 #include "instrucoes.h"
 #include "diretivas.h"
+#include "preprocessamento.h"
 #define OPERANDOS 0
 #define TAMANHO 1
 #define CODIGO 2
 
 using namespace std;
 
-string padronizar(string linha){
-
-    linha = linha.substr(0, linha.find(";"));
-
-    for(int i = 0; i<linha.length(); i++){
-        linha[i] = toupper(linha[i]);
-    }
-
-    return linha;
-}
-
-void pre_processamento(char *argv){
-    map<string, int> tabela_equ;
-    string arquivo = string(argv).substr(0, string(argv).find(".asm"));
-
-    fstream arquivo_raw;
-    arquivo_raw.open(arquivo + ".asm", ios::in);
-    if(!arquivo_raw.is_open())
-    {
-        cout << "Erro ao abrir o arquivo original!" << endl;
-        exit(0);
-    }
-    else{
-        string linha;
-        // Antes de Section Text
-        while(getline(arquivo_raw, linha)){
-            vector<std::string> palavras;
-            string aux;
-            padronizar(linha);
-            split(linha, palavras);
-
-            if(palavras[0][palavras[0].length()-1] == ':'){
-                aux = palavras[0].substr(0, palavras[0].find(':'));
-                if(palavras.size() == 1){
-                    do{
-                        getline(arquivo_raw, linha);
-                        padronizar(linha);
-                        split(linha, palavras);
-                    }while(palavras.empty());
-                    tabela_equ[aux] = stoi(palavras[1]);
-
-                }else{
-                    tabela_equ[aux] = stoi(palavras[2]);
-                }
-            }else{
-                break;
-            }
-        }
-
-         // Depois de Section Text
-        fstream arquivo_preprocessado;
-        arquivo_preprocessado.open(arquivo + ".pre", ios::in);
-
-        // Escrever Section Text
-
-        while(getline(arquivo_raw, linha)){
-            if(!arquivo_raw.is_open())
-            {
-                cout << "Erro ao abrir o arquivo pre processado!" << endl;
-                exit(0);
-            }
-            else{
-                vector<std::string> palavras;
-                string aux;
-                padronizar(linha);
-                split(linha, palavras);
-                if(palavras[0] == "IF"){
-                    if(tabela_equ[palavras[1]] == 0){
-                        do{
-                            getline(arquivo_raw, linha);
-                            padronizar(linha);
-                            split(linha, palavras);
-                        }while(palavras.empty());
-                        continue;
-                    }else{
-                        do{
-                            getline(arquivo_raw, linha);
-                            padronizar(linha);
-                            split(linha, palavras);
-                        }while(palavras.empty());
-                        // Escreve linha no arquivo
-                    }
-                }else if(palavras[0][palavras[0].length()-1] == ':'){
-                    if(palavras.size() > 1){
-                        // escreve a linha toda no arquivo
-                    }else{
-                        // escreve a primeira palavra
-                        do{
-                            getline(arquivo_raw, linha);
-                            padronizar(linha);
-                            split(linha, palavras);
-                        }while(palavras.empty());
-                        // escreve o resto
-                    }
-                }else if(palavras.size() != 0){
-                    // escreve a linha
-                }              
-            }
-        }
-    arquivo_preprocessado.close();
-    }
-    arquivo_raw.close();
-}
-
 map<string, int> primeira_passagem(char *argv){
     map<string, int> tabela_de_simbolos;
+    string file = string(argv).substr(0, string(argv).find(".asm"));
     fstream arquivo;
-    arquivo.open(string(argv), ios::in);
+    
+    arquivo.open(file + ".pre", ios::in);
     if(!arquivo.is_open())
     {
-        cout << "Erro ao abrir o arquivo!" << endl;
+        cout << "Erro ao abrir o arquivo na primeira passagem!" << endl;
         exit(0);
     }
     else{
@@ -189,7 +88,6 @@ void segunda_passagem(char *argv, map<string, int> tabela_de_simbolos, int objet
         map<string, vector<int>> instrucoes = getInstrucoes();
         map<string, vector<int>> diretivas = getDiretivas();
         map<string, vector<int>>::iterator it; 
-        int cp = 0; 
 
         while(getline(arquivo, linha)){
             vector<std::string> palavras;
@@ -218,8 +116,7 @@ int main(int argc, char **argv){
         
         case 3:
             if(string(argv[1]) == "-p"){
-                tabela_de_simbolos = primeira_passagem(argv[2]);
-                segunda_passagem(argv[2], tabela_de_simbolos, false);
+                pre_processamento(argv[2]);
             }else if(string(argv[1]) == "-o"){
                 tabela_de_simbolos = primeira_passagem(argv[2]);
                 segunda_passagem(argv[2], tabela_de_simbolos, true);
@@ -231,11 +128,6 @@ int main(int argc, char **argv){
 
         default:
             cout << "Numero de argumentos acima do esperado" << endl;
-    }
-
-    cout << "Tabela de simbolos :" << endl;
-    for(auto it=tabela_de_simbolos.begin(); it!=tabela_de_simbolos.end(); ++it){
-        cout << it->first << "->" << it->second << endl;
     }
 
 }

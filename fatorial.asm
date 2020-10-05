@@ -1,7 +1,10 @@
-SECTION    TEXT
-MUL_N: MACRO 
-MULT N
-STORE N
+SECTION tEXT
+MUL_N: mACRO ;;;;;;;;;;;;;;
+MULT N ;Ahhh muleeeeke
+
+
+
+STORE N ; Ihaaaaa
 ENDMACRO
 INPUT N
 LOAD N
