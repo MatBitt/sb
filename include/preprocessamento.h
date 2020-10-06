@@ -133,11 +133,9 @@ void pre_processamento(char *argv){
                         escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
                     }
                 }else if(palavras.size() != 0){
-                    // se achar macros[palavras[0]]
-                    // arquivo << macros[palavras[0]]
-                    // else
                     map<string, string>::iterator it;
                     it = macros.find(palavras[0]);
+                    // Caso ache a label nas macros
                     if(it != macros.end()){
                         arquivo_preprocessado << it->second;
                     }else{
