@@ -1,18 +1,18 @@
 SECTION tEXT
-MUL_N: mACRO ;;;;;;;;;;;;;;
-MULT N ;Ahhh muleeeeke
+MUL_N: mACRO &axsd   ;;;;;;;;;;;;;;
+MULT &axsd ;Ahhh muleeeeke
 
 
 
 STORE N ; Ihaaaaa
 ENDMACRO
-INPUT N
+    INPUT N
 LOAD N
 FAT: SUB ONE
 JMPZ FIM
 COPY Asdaf    ,Bargadfg
 STORE AUX
-MUL_N 
+MUL_N b
 LOAD AUX
 JMP FAT
 FIM: OUTPUT N

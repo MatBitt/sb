@@ -50,9 +50,9 @@ void retira_virgulas(vector<string>& palavras){
     }
 }
 
-string troca(string macro, const string& label, const string& valor) {
+string troca(string macro, const string& label, const string& valor){
     size_t start_pos = 0;
-    while((start_pos = macro.find(label, start_pos)) != string::npos) {
+    while((start_pos = macro.find(label, start_pos)) != string::npos){
         macro.replace(start_pos, label.length(), valor);
         start_pos += valor.length();
     }

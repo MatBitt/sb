@@ -21,11 +21,40 @@ string padronizar(string linha){
     return linha;
 }
 
+string substitui_labels(string texto, vector<string> macros_labels, string label1, string label2){
+    if(macros_labels[0].length() > macros_labels[1].length()){
+        texto = troca(texto, macros_labels[0], label1);
+        texto = troca(texto, macros_labels[1], label2);
+    }else{
+        texto = troca(texto, macros_labels[1], label2);
+        texto = troca(texto, macros_labels[0], label1);
+    }
+
+    return texto;
+}
+
 string escreve_macro(vector<string> palavras){
     string linha;
-    size_t i;
-    for(i = 0; i< palavras.size(); i++){
-        linha = linha + palavras[i] + ' ';
+    int i;
+    for(i = 0; i< (int) palavras.size(); i++){
+
+        if(i< (int) palavras.size() - 1){
+            if(palavras[i+1] == ","){
+                linha = linha + palavras[i];
+                continue;
+            }
+            else if(palavras[i+1][0] == ','){
+                linha = linha + palavras[i] + ',' + ' ';
+                palavras[i+1] = palavras[i+1].substr(1);
+                continue;
+            }
+            else{
+                linha = linha + palavras[i] + ' ';
+                continue;
+            }
+        }
+        linha = linha + palavras[i];
+
     }
     linha.push_back('\n');
     return linha;
@@ -34,6 +63,7 @@ string escreve_macro(vector<string> palavras){
 void pre_processamento(char *argv){
     map<string, int> tabela_equ;
     map<string, string> macros;
+    map<string, vector<string>> macros_labels;
     string arquivo = string(argv).substr(0, string(argv).find(".asm"));
 
     fstream arquivo_raw;
@@ -112,25 +142,34 @@ void pre_processamento(char *argv){
 
                             if((int)palavras.size() == 5){
                                 // &a , &b
+                                macros_labels[aux] = {palavras[2], palavras[4]};
                             }
                             else if((int)palavras.size() == 4){
                                 // &a, &b ou &a ,&b
+                                if(palavras[3][0] == ','){
+                                    macros_labels[aux] = {palavras[2].substr(0, palavras[2].find(',')), palavras[3].substr(1)};
+                                } 
+                                else{
+                                    macros_labels[aux] = {palavras[2].substr(0, palavras[2].find(',')), palavras[3]};
+                                } 
                             }
                             else if((int)palavras.size() == 3){
                                 // &a
-                            }else{
-                                while(palavras[0] != "ENDMACRO"){
-                                    palavras.clear();   
-                                    do{
-                                        getline(arquivo_raw, linha);
-                                    }while(linha.empty());
-                                    linha = padronizar(linha);
-                                    split(linha, palavras);
-                                    if(palavras[0] != "ENDMACRO")
+                                macros_labels[aux] = {palavras[2]};
+                            }
+                            while(palavras[0] != "ENDMACRO"){
+                                palavras.clear();   
+                                do{
+                                    getline(arquivo_raw, linha);
+                                }while(linha.empty());
+                                linha = padronizar(linha);
+                                split(linha, palavras);
+                                if(palavras[0] != "ENDMACRO"){
                                     macros[aux] = macros[aux] + escreve_macro(palavras);
                                 }
-                                palavras.clear();
                             }
+                            palavras.clear();
+                            
                         }else{
                             escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
                         }
@@ -148,6 +187,20 @@ void pre_processamento(char *argv){
                     it = macros.find(palavras[0]);
                     // Caso ache a label nas macros
                     if(it != macros.end()){
+                        if((int)palavras.size() == 2){   
+                            it->second = troca(it->second, macros_labels[palavras[0]][0], palavras[1]);
+                        }
+                        else if((int)palavras.size() == 3){
+                            retira_virgulas(palavras);
+                            it->second = substitui_labels(it->second, macros_labels[palavras[0]], palavras[1], palavras[2]);
+                            // it->second = troca(it->second, macros_labels[palavras[0]][0], palavras[1]);
+                            // it->second = troca(it->second, macros_labels[palavras[0]][1], palavras[2]);
+                        }
+                        else if((int)palavras.size() == 4){
+                            it->second = substitui_labels(it->second, macros_labels[palavras[0]], palavras[1], palavras[3]);
+                            // it->second = troca(it->second, macros_labels[palavras[0]][0], palavras[1]);
+                            // it->second = troca(it->second, macros_labels[palavras[0]][1], palavras[3]);
+                        }
                         arquivo_preprocessado << it->second;
                     }else{
                         escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
