@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string.h>
 #include <map>
+#include <iterator>
 #include <fstream>
 #include "utilidade.h"
 
@@ -104,32 +105,44 @@ void pre_processamento(char *argv){
                 // Tratamento de Labels
                 if(palavras[0][palavras[0].length()-1] == ':'){
                     if( (int)palavras.size() > 1){
-                        escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
+
+                         // Tratamento de Macros
+                        if(palavras[1] == "MACRO"){
+                            aux = palavras[0].substr(0, palavras[0].find(':'));
+                            while(palavras[0] != "ENDMACRO"){
+                                palavras.clear();   
+                                do{
+                                    getline(arquivo_raw, linha);
+                                }while(linha.empty());
+                                linha = padronizar(linha);
+                                split(linha, palavras);
+                                if(palavras[0] != "ENDMACRO")
+                                macros[aux] = macros[aux] + escreve_macro(palavras);
+                            }
+                            palavras.clear();
+                        }else{
+                            escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
+                        }
+
                     }else{
                         do{
                             getline(arquivo_raw, linha);
                         }while(linha.empty());
                         linha = padronizar(linha);
                         split(linha, palavras);
-
-                         // Tratamento de Macros
-                        // if(palavras[1] == "MACRO"){
-                        //     aux = palavras[0].substr(0, palavras[0].find(':'));
-                        //     while(palavras[0] != "ENDMACRO"){
-                        //         palavras.clear();   
-                        //         do{
-                        //             getline(arquivo_raw, linha);
-                        //         }while(linha.empty());
-                        //         linha = padronizar(linha);
-                        //         split(linha, palavras);
-                        //         macros[aux] = macros[aux] + escreve_macro(palavras);
-                        //     }
-                        // }
-
                         escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
                     }
                 }else if(palavras.size() != 0){
-                    escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
+                    // se achar macros[palavras[0]]
+                    // arquivo << macros[palavras[0]]
+                    // else
+                    map<string, string>::iterator it;
+                    it = macros.find(palavras[0]);
+                    if(it != macros.end()){
+                        arquivo_preprocessado << it->second;
+                    }else{
+                        escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
+                    }
                 }              
             }   
         }
