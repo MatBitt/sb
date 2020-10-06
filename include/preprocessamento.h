@@ -109,17 +109,28 @@ void pre_processamento(char *argv){
                          // Tratamento de Macros
                         if(palavras[1] == "MACRO"){
                             aux = palavras[0].substr(0, palavras[0].find(':'));
-                            while(palavras[0] != "ENDMACRO"){
-                                palavras.clear();   
-                                do{
-                                    getline(arquivo_raw, linha);
-                                }while(linha.empty());
-                                linha = padronizar(linha);
-                                split(linha, palavras);
-                                if(palavras[0] != "ENDMACRO")
-                                macros[aux] = macros[aux] + escreve_macro(palavras);
+
+                            if((int)palavras.size() == 5){
+                                // &a , &b
                             }
-                            palavras.clear();
+                            else if((int)palavras.size() == 4){
+                                // &a, &b ou &a ,&b
+                            }
+                            else if((int)palavras.size() == 3){
+                                // &a
+                            }else{
+                                while(palavras[0] != "ENDMACRO"){
+                                    palavras.clear();   
+                                    do{
+                                        getline(arquivo_raw, linha);
+                                    }while(linha.empty());
+                                    linha = padronizar(linha);
+                                    split(linha, palavras);
+                                    if(palavras[0] != "ENDMACRO")
+                                    macros[aux] = macros[aux] + escreve_macro(palavras);
+                                }
+                                palavras.clear();
+                            }
                         }else{
                             escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
                         }
