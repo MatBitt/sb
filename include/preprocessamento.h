@@ -10,6 +10,7 @@
 
 using namespace std;
 
+// Retira os comentarios e poe tudo em caixa alta
 string padronizar(string linha){
 
     linha = linha.substr(0, linha.find(";"));
@@ -21,6 +22,7 @@ string padronizar(string linha){
     return linha;
 }
 
+// Troca as variaveis definadas nas macros pelas variaveis que o programa fornece quando chama a macro
 string substitui_labels(string texto, vector<string> macros_labels, string label1, string label2){
     if(macros_labels[0].length() > macros_labels[1].length()){
         texto = troca(texto, macros_labels[0], label1);
@@ -33,6 +35,7 @@ string substitui_labels(string texto, vector<string> macros_labels, string label
     return texto;
 }
 
+// Escreve uma linha na variavel que armazena a macro
 string escreve_macro(vector<string> palavras){
     string linha;
     int i;
@@ -75,6 +78,7 @@ void pre_processamento(string arquivo_assembly){
     }
     else{
         string linha;
+
         // Antes de Section Text
         while(getline(arquivo_raw, linha)){
             if(linha.empty()) continue;
@@ -83,6 +87,7 @@ void pre_processamento(string arquivo_assembly){
             linha = padronizar(linha);
             split(linha, palavras);
 
+            // Tratamento de labels
             if(palavras[0][palavras[0].length()-1] == ':'){
                 aux = palavras[0].substr(0, palavras[0].find(':'));
                 if(palavras.size() == 1){
@@ -104,9 +109,7 @@ void pre_processamento(string arquivo_assembly){
         {
             cout << "Erro ao abrir o arquivo pre processado!" << endl;
             exit(0);
-        }else{
-
-            // Escrever Section Text    
+        }else{   
             arquivo_preprocessado << "SECTION TEXT\n";
 
             while(getline(arquivo_raw, linha)){
@@ -115,6 +118,8 @@ void pre_processamento(string arquivo_assembly){
                 string aux;
                 linha = padronizar(linha);
                 split(linha, palavras);
+
+                // Trata diretiva IF
                 if(palavras[0] == "IF"){
                     if(tabela_equ[palavras[1]] == 0){
                         do{
@@ -185,7 +190,8 @@ void pre_processamento(string arquivo_assembly){
                 }else if(palavras.size() != 0){
                     map<string, string>::iterator it;
                     it = macros.find(palavras[0]);
-                    // Caso ache a label nas macros
+
+                    // Caso ache uma label que referencia uma macro
                     if(it != macros.end()){
                         if((int)palavras.size() == 2){   
                             it->second = troca(it->second, macros_labels[palavras[0]][0], palavras[1]);
@@ -204,8 +210,8 @@ void pre_processamento(string arquivo_assembly){
                 }              
             }   
         }
-    arquivo_preprocessado.close();
-    cout << "Arquivo .pre gerado!" << endl;
+        arquivo_preprocessado.close();
+        cout << "Arquivo " << arquivo << ".pre gerado!" << endl;
     }
     arquivo_raw.close();
 }

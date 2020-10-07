@@ -8,14 +8,12 @@
 #include "utilidade.h"
 #include "instrucoes.h"
 #include "diretivas.h"
-#define OPERANDOS 0
 #define TAMANHO 1
-#define CODIGO 2
 
 map<string, int> primeira_passagem(string arquivo_prepocessado){
     map<string, int> tabela_de_simbolos;
+    map<string, int>::iterator it_tabela_simbolos;
     fstream arquivo;
-    cout << arquivo_prepocessado << endl;
     
     arquivo.open(arquivo_prepocessado, ios::in);
     if(!arquivo.is_open())
@@ -38,17 +36,21 @@ map<string, int> primeira_passagem(string arquivo_prepocessado){
             // Caso seja uma label
             if(palavras[0][palavras[0].length()-1] == ':'){
                 aux = palavras[0].substr(0, palavras[0].find(':'));
-                it = instrucoes.find(aux);
-                if(it != instrucoes.end()){   
-                    cout << "Erro, instrução redefinida!" << endl;
+                it_tabela_simbolos = tabela_de_simbolos.find(aux);
+                if(it_tabela_simbolos != tabela_de_simbolos.end()){   
+                    cout << "Erro, label redefinida!" << endl;
                     exit(0);
                 }else{
                     tabela_de_simbolos[aux] = cp;
                 }
+
+                // Verifica se tem uma intrucao na label
                 it = instrucoes.find(palavras[1]);
                 if(it != instrucoes.end()){
                     cp += it->second[TAMANHO];
                 }else{
+
+                    // Verifica se tem uma diretiva na label
                     it = diretivas.find(palavras[1]);
                     if(it != diretivas.end()){
                         cp += it->second[TAMANHO];
@@ -56,12 +58,14 @@ map<string, int> primeira_passagem(string arquivo_prepocessado){
                 }
             }
 
-            // Caso seja ou uma instrucao ou diretiva
+            // Caso seja uma instrucao
             else{
                 it = instrucoes.find(palavras[0]);
                 if(it != instrucoes.end()){
                     cp += it->second[TAMANHO];
                 }else{
+                    
+                    // Caso seja uma diretiva
                     it = diretivas.find(palavras[0]);
                     if(it != diretivas.end()){
                         cp += it->second[TAMANHO];
