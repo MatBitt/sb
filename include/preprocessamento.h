@@ -60,11 +60,11 @@ string escreve_macro(vector<string> palavras){
     return linha;
 }
 
-void pre_processamento(char *argv){
+void pre_processamento(string arquivo_assembly){
     map<string, int> tabela_equ;
     map<string, string> macros;
     map<string, vector<string>> macros_labels;
-    string arquivo = string(argv).substr(0, string(argv).find(".asm"));
+    string arquivo = arquivo_assembly.substr(0, arquivo_assembly.find(".asm"));
 
     fstream arquivo_raw;
     arquivo_raw.open(arquivo + ".asm", ios::in);
@@ -193,13 +193,9 @@ void pre_processamento(char *argv){
                         else if((int)palavras.size() == 3){
                             retira_virgulas(palavras);
                             it->second = substitui_labels(it->second, macros_labels[palavras[0]], palavras[1], palavras[2]);
-                            // it->second = troca(it->second, macros_labels[palavras[0]][0], palavras[1]);
-                            // it->second = troca(it->second, macros_labels[palavras[0]][1], palavras[2]);
                         }
                         else if((int)palavras.size() == 4){
                             it->second = substitui_labels(it->second, macros_labels[palavras[0]], palavras[1], palavras[3]);
-                            // it->second = troca(it->second, macros_labels[palavras[0]][0], palavras[1]);
-                            // it->second = troca(it->second, macros_labels[palavras[0]][1], palavras[3]);
                         }
                         arquivo_preprocessado << it->second;
                     }else{

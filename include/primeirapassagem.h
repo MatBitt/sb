@@ -12,12 +12,12 @@
 #define TAMANHO 1
 #define CODIGO 2
 
-map<string, int> primeira_passagem(char *argv){
+map<string, int> primeira_passagem(string arquivo_prepocessado){
     map<string, int> tabela_de_simbolos;
-    string file = string(argv).substr(0, string(argv).find(".asm"));
     fstream arquivo;
+    cout << arquivo_prepocessado << endl;
     
-    arquivo.open(file + ".pre", ios::in);
+    arquivo.open(arquivo_prepocessado, ios::in);
     if(!arquivo.is_open())
     {
         cout << "Erro ao abrir o arquivo na primeira passagem!" << endl;
@@ -40,7 +40,8 @@ map<string, int> primeira_passagem(char *argv){
                 aux = palavras[0].substr(0, palavras[0].find(':'));
                 it = instrucoes.find(aux);
                 if(it != instrucoes.end()){   
-                    cout << "Erro, instrução redefinida!" << endl;   
+                    cout << "Erro, instrução redefinida!" << endl;
+                    exit(0);
                 }else{
                     tabela_de_simbolos[aux] = cp;
                 }
