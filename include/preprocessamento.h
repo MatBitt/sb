@@ -19,6 +19,11 @@ string padronizar(string linha){
         linha[i] = toupper(linha[i]);
     }
 
+    if(linha.find_first_not_of(' ') == string::npos){
+        string vazia;
+        linha = vazia;
+    }
+
     return linha;
 }
 
@@ -64,7 +69,7 @@ string escreve_macro(vector<string> palavras){
 }
 
 void pre_processamento(string arquivo_assembly){
-    map<string, int> tabela_equ;
+    map<string, string> tabela_equ;
     map<string, string> macros;
     map<string, vector<string>> macros_labels;
     string arquivo = arquivo_assembly.substr(0, arquivo_assembly.find(".asm"));
@@ -81,10 +86,10 @@ void pre_processamento(string arquivo_assembly){
 
         // Antes de Section Text
         while(getline(arquivo_raw, linha)){
+            linha = padronizar(linha);
             if(linha.empty()) continue;
             vector<std::string> palavras;
             string aux;
-            linha = padronizar(linha);
             split(linha, palavras);
 
             // Tratamento de labels
@@ -93,11 +98,11 @@ void pre_processamento(string arquivo_assembly){
                 if(palavras.size() == 1){
                     do{
                         getline(arquivo_raw, linha);
+                        linha = padronizar(linha);
                     }while(linha.empty());
-                    linha = padronizar(linha);
                     split(linha, palavras);
                 }
-                tabela_equ[aux] = stoi(palavras[2]);
+                tabela_equ[aux] = palavras[2];
             }else{
                 break;
             }
@@ -113,25 +118,26 @@ void pre_processamento(string arquivo_assembly){
             arquivo_preprocessado << "SECTION TEXT\n";
 
             while(getline(arquivo_raw, linha)){
+                linha = padronizar(linha);
                 if(linha.empty()) continue;
                 vector<std::string> palavras;
                 string aux;
-                linha = padronizar(linha);
                 split(linha, palavras);
 
                 // Trata diretiva IF
                 if(palavras[0] == "IF"){
-                    if(tabela_equ[palavras[1]] == 0){
+                    if(tabela_equ[palavras[1]] == "0"){
                         do{
                             getline(arquivo_raw, linha);
+                            linha = padronizar(linha);
                         }while(linha.empty());
                         continue;
                     }else{
                         do{
                             getline(arquivo_raw, linha);
+                            linha = padronizar(linha);
                         }while(linha.empty());
                         palavras.clear();
-                        linha = padronizar(linha);
                         split(linha, palavras);
                         escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
                     }
@@ -139,54 +145,64 @@ void pre_processamento(string arquivo_assembly){
 
                 // Tratamento de Labels
                 if(palavras[0][palavras[0].length()-1] == ':'){
-                    if( (int)palavras.size() > 1){
-
-                         // Tratamento de Macros
-                        if(palavras[1] == "MACRO"){
-                            aux = palavras[0].substr(0, palavras[0].find(':'));
-
-                            if((int)palavras.size() == 5){
-                                // &a , &b
-                                macros_labels[aux] = {palavras[2], palavras[4]};
-                            }
-                            else if((int)palavras.size() == 4){
-                                // &a, &b ou &a ,&b
-                                if(palavras[3][0] == ','){
-                                    macros_labels[aux] = {palavras[2].substr(0, palavras[2].find(',')), palavras[3].substr(1)};
-                                } 
-                                else{
-                                    macros_labels[aux] = {palavras[2].substr(0, palavras[2].find(',')), palavras[3]};
-                                } 
-                            }
-                            else if((int)palavras.size() == 3){
-                                // &a
-                                macros_labels[aux] = {palavras[2]};
-                            }
-                            while(palavras[0] != "ENDMACRO"){
-                                palavras.clear();   
-                                do{
-                                    getline(arquivo_raw, linha);
-                                }while(linha.empty());
-                                linha = padronizar(linha);
-                                split(linha, palavras);
-                                if(palavras[0] != "ENDMACRO"){
-                                    macros[aux] = macros[aux] + escreve_macro(palavras);
-                                }
-                            }
-                            palavras.clear();
-                            
-                        }else{
-                            escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
-                        }
-
-                    }else{
+                    if( (int)palavras.size() == 1){
                         do{
                             getline(arquivo_raw, linha);
+                            linha = padronizar(linha);
                         }while(linha.empty());
-                        linha = padronizar(linha);
                         split(linha, palavras);
+                    }
+
+                        // Tratamento de Macros
+                    if(palavras[1] == "MACRO"){
+                        aux = palavras[0].substr(0, palavras[0].find(':'));
+
+                        if((int)palavras.size() == 5){
+                            // &a , &b
+                            macros_labels[aux] = {palavras[2], palavras[4]};
+                        }
+                        else if((int)palavras.size() == 4){
+                            // &a, &b ou &a ,&b
+                            if(palavras[3][0] == ','){
+                                macros_labels[aux] = {palavras[2].substr(0, palavras[2].find(',')), palavras[3].substr(1)};
+                            } 
+                            else{
+                                macros_labels[aux] = {palavras[2].substr(0, palavras[2].find(',')), palavras[3]};
+                            } 
+                        }
+                        else if((int)palavras.size() == 3){
+                            // &a
+                            macros_labels[aux] = {palavras[2]};
+                        }
+                        while(palavras[0] != "ENDMACRO"){
+                            palavras.clear();   
+                            do{
+                                getline(arquivo_raw, linha);
+                                linha = padronizar(linha);
+                            }while(linha.empty());
+                            split(linha, palavras);
+                            if(palavras[0] != "ENDMACRO"){
+                                macros[aux] = macros[aux] + escreve_macro(palavras);
+                            }
+                        }
+                        palavras.clear();
+                        
+                    }else{
+                        map<string, string>::iterator it_equ;
+
+                        it_equ = tabela_equ.find(palavras[1]);
+                        if(it_equ != tabela_equ.end()){
+                            palavras[1] = it_equ->second;
+                        }else if(palavras[1] == "CONST"){
+                            it_equ = tabela_equ.find(palavras[2]);
+                            if(it_equ != tabela_equ.end()){
+                                palavras[2] = it_equ->second;
+                            }
+                        }
                         escreve_linha_no_arquivo(palavras, arquivo_preprocessado);
                     }
+
+                    
                 }else if(palavras.size() != 0){
                     map<string, string>::iterator it;
                     it = macros.find(palavras[0]);
@@ -211,7 +227,7 @@ void pre_processamento(string arquivo_assembly){
             }   
         }
         arquivo_preprocessado.close();
-        cout << "Arquivo " << arquivo << ".pre gerado!" << endl;
+        cout << "Arquivo \"" << arquivo << ".pre\" gerado!" << endl;
     }
     arquivo_raw.close();
 }

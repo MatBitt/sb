@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Makefile stuff
+build/ 
+
 # Precompiled Headers
 *.gch
 *.pch

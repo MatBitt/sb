@@ -97,7 +97,7 @@ void segunda_passagem(string arquivo, map<string, int> tabela_de_simbolos){
 
         }
         arquivo_obj.close();
-        cout << "Arquivo " << objeto << ".obj gerado!" << endl;
+        cout << "Arquivo \"" << objeto << ".obj\" gerado!" << endl;
     }
     arquivo_pre.close();
 }
