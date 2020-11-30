@@ -8,12 +8,7 @@ using namespace std;
 
 int main(int argc, char **argv){
    
-    map<string, int> tabela_de_simbolos;
-    string arquivo_asm;
-    string arquivo_pre;
-
-    switch(argc){
-       
-    }
-
+    string arquivo_asm = (string)argv[argc-1];
+    pre_processamento(arquivo_asm);
+    traducao(arquivo_asm);
 }

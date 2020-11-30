@@ -120,7 +120,7 @@ void pre_processamento(string arquivo_assembly){
             while(getline(arquivo_raw, linha)){
                 linha = padronizar(linha);
                 if(linha.empty()) continue;
-                vector<std::string> palavras;
+                vector<string> palavras;
                 string aux;
                 split(linha, palavras);
 
@@ -227,7 +227,6 @@ void pre_processamento(string arquivo_assembly){
             }   
         }
         arquivo_preprocessado.close();
-        cout << "Arquivo \"" << arquivo << ".pre\" gerado!" << endl;
     }
     arquivo_raw.close();
 }
