@@ -123,7 +123,10 @@ string obtem_traducao(vector<string> palavras){
                 break;
 
             case 7: // JMPP
-                traducao = traducao + "cmp EAX, 0\n";
+                for(; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i] + ' ';
+                }
+                traducao = traducao + "  ----- NAO TRADUZIDO\n";
                 break;
 
             case 8: // JMPZ

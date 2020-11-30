@@ -1,7 +1,7 @@
 SECTION TEXT
 MUL_N: MACRO 
-MULT N + 2
-STORE N + 1
+MULT N      +       2
+STORE N  +    1
     
      
    ; é noooois
