@@ -25,6 +25,10 @@ map<string, int> getInstrucoes(){
     instrucao["INPUT"] = 12;
     instrucao["OUTPUT"] = 13;
     instrucao["STOP"] = 14;
+    instrucao["C_INPUT"] = 15;
+    instrucao["C_OUTPUT"] = 16;
+    instrucao["S_INPUT"] = 19;
+    instrucao["S_OUTPUT"] = 20;
     return instrucao;
 }
 

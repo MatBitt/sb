@@ -91,17 +91,20 @@ string obtem_traducao(vector<string> palavras){
                 break;
 
             case 3: // MULT
+                traducao = traducao + "imul dword [";
                 for(; i<palavras.size(); i++){
-                    traducao = traducao + palavras[i] + ' ';
+                    traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                traducao = traducao + "]\n";
                 break;
 
             case 4: // DIV
+                traducao = traducao + "cdq\n";
+                traducao = traducao + "idiv dword [";
                 for(; i<palavras.size(); i++){
-                    traducao = traducao + palavras[i] + ' ';
+                    traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                traducao = traducao + "]\n";
                 break;
 
             case 5: // JMP
@@ -114,7 +117,7 @@ string obtem_traducao(vector<string> palavras){
 
             case 6: // JMPN
                 traducao = traducao + "cmp EAX, 0\n";
-                traducao = traducao + "js ";
+                traducao = traducao + "jl ";
                 for(++i; i<palavras.size(); i++){
                     traducao = traducao + palavras[i];
                 }
@@ -123,10 +126,12 @@ string obtem_traducao(vector<string> palavras){
                 break;
 
             case 7: // JMPP
-                for(; i<palavras.size(); i++){
-                    traducao = traducao + palavras[i] + ' ';
+                traducao = traducao + "cmp EAX, 0\n";
+                traducao = traducao + "jg ";
+                for(++i; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                traducao = traducao + "\n";
                 break;
 
             case 8: // JMPZ
@@ -190,6 +195,30 @@ string obtem_traducao(vector<string> palavras){
                 traducao = traducao + "mov ebx, 0\n";
                 traducao = traducao + "int 80h\n";
                 break;
+            case 15: // C_INPUT
+                for(; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i] + ' ';
+                }
+                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                break;
+            case 16: // C_OUTPUT
+                for(; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i] + ' ';
+                }
+                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                break;
+            case 19: // S_INPUT
+                for(; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i] + ' ';
+                }
+                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                break;
+            case 20: // S_OUTPUT
+                for(; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i] + ' ';
+                }
+                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                break;
         }
     }
     return traducao;
@@ -212,4 +241,20 @@ void section_data(vector<string> palavras, string& bss, string& data){
         }
         bss = bss + "\n";
     }
+}
+
+void subrotinas_ia32(ofstream& arquivo){
+    arquivo << "LeerInteiro:";
+    arquivo << "ret";
+    arquivo << "EscreverInteiro:";
+    arquivo << "ret";
+    arquivo << "LeerChar:";
+    arquivo << "";
+    arquivo << "ret";
+    arquivo << "EscreverChar:";
+    arquivo << "ret";
+    arquivo << "LeerString:";
+    arquivo << "ret";
+    arquivo << "EscreverString:";
+    arquivo << "ret";
 }
