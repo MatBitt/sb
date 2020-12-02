@@ -43,7 +43,7 @@ void traducao(string arquivo_assembly){
         split(linha, palavras);
         if(palavras[0] == "SECTION") break;
         linha = obtem_traducao(palavras);
-        arquivo_traduzido << linha; 
+        arquivo_traduzido << linha;
     }
 
     subrotinas_ia32(arquivo_traduzido);
@@ -56,6 +56,7 @@ void traducao(string arquivo_assembly){
     data = data + "_menos: db '-'\n";
     data = data + "_mais: db '+'\n";
     data = data + "_enter: db 0dh, adh \n";
+    data = data + "_dez: db 10\n";
     while(getline(arquivo, linha)){
         vector<string> palavras;
         string aux;
@@ -287,9 +288,9 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "mov EDX, word [_enter]\n";
     arquivo << "mov ECX, 2\n";
     arquivo << "sub EAX, 30h\n";
-    arquivo << "imul -1\n";   //////////// TESTAAAAR ISSSO AQUIIIII
+    arquivo << "neg EAX\n";
     arquivo << "inc EBX\n";
-    arquivo << "cmp word [EBX], EDX\n"; 
+    arquivo << "cmp word [EBX], EDX\n";
     arquivo << "je _fimloop\n";
     arquivo << "jmp _loop:\n";
 
@@ -299,11 +300,11 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "mov ECX, 2\n";
     arquivo << "sub EAX, 30h\n";
     arquivo << "inc EBX\n";
-    arquivo << "cmp word [EBX], EDX\n"; 
+    arquivo << "cmp word [EBX], EDX\n";
     arquivo << "je _fimloop\n";
 
     arquivo << "_loop:\n";
-    arquivo << "mult EAX, 10\n";
+    arquivo << "mul [_dez]\n";
     arquivo << "movz ESI, byte [EBX]\n";
     arquivo << "sub ESI, 30h\n";
     arquivo << "add EAX, ESI";
@@ -324,7 +325,26 @@ void subrotinas_ia32(ofstream& arquivo){
 
 
     arquivo << "_EscreverInteiro:\n";
-    arquivo << "ret\n";
+    arquivo << "enter 0, 0\n";
+    arquivo << "push EAX\n";
+    arquivo << "push EBX\n";
+    arquivo << "push ECX\n";
+    arquivo << "push EDX\n";
+    arquivo << "call _calcula_tam\n";
+    arquivo << "mov EAX, 4\n";
+    arquivo << "mov EBX, 1\n";
+    arquivo << "mov ECX, [EBP + 8]\n";
+    arquivo << "mov EDX, \n";
+    arquivo << "pop EDX\n";
+    arquivo << "pop ECX\n";
+    arquivo << "pop EBX\n";
+    arquivo << "pop EAX\n";
+    arquivo << "leave\n";
+    arquivo << "ret 4\n";
+    arquivo << "_calcula_tam:\n";
+    arquivo << "mov EAX, [EBP + 8]\n";
+    arquivo << "div 10"
+
 
 
     arquivo << "_LeerChar:\n";
@@ -401,5 +421,5 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "pop EAX\n";
     arquivo << "leave\n";
     arquivo << "ret 8\n";
-    
+
 }
