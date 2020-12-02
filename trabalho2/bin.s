@@ -2,11 +2,9 @@ global _start
 section .text
 _start:
 push dword AUX
-push dword 25
-call _LeerString
-push dword AUX
-push dword 25
-call _EscreverString
+call _LeerInteiro ; ---------------------- NAO FINALIZADO
+push dword AUX 
+call _EscreverInteiro ; ---------------------- NAO FINALIZADO
 mov eax, 1
 mov ebx, 0
 int 80h
@@ -83,7 +81,8 @@ push EDX
 call _calcula_tam
 mov EAX, 4
 mov EBX, 1
-mov ECX, [EBP + 8]
+mov ECX, _aux
+mov EDX, [_tamint]
 int 80h
 pop EDX
 pop ECX
@@ -92,8 +91,39 @@ pop EAX
 leave
 ret 4
 _calcula_tam:
-mov EAX, [EBP + 8]
+push EAX
+push EBX
+push ECX
+push EDX
+push ESI
+mov ECX, 0
+mov EBX, [EBP + 8]
+mov EAX, [EBX]
+_contagem:
+inc ECX
+cdq
 div dword [_dez]
+cmp EDX, 0
+add EDX, 30h
+push EDX
+jne _contagem
+pop EDX
+add EAX, 30h
+push EAX
+mov ESI, _aux
+mov dword [_tamint], ECX
+call _pop
+pop ESI
+pop EDX
+pop ECX
+pop EBX
+pop EAX
+ret
+_pop:
+pop EAX
+mov dword [ESI], EAX
+inc ESI
+loop _pop
 _LeerChar:
 enter 0, 0
 push EAX
@@ -129,6 +159,7 @@ pop EDX
 pop ECX
 pop EBX
 pop EAX
+leave
 ret 4
 _LeerString:
 enter 0, 0
@@ -166,6 +197,7 @@ leave
 ret 8
 section .bss
 _aux: resd 101
+_tamint: resd 2
 AUX: resd 20 
 section .data
 _menos: db '-'

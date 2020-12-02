@@ -52,6 +52,7 @@ void traducao(string arquivo_assembly){
     string bss, data;
     bss = "section .bss\n";
     bss = bss + "_aux: resd 101\n";
+    bss = bss + "_tamint: resd 2\n";
     data = "section .data\n";
     data = data + "_menos: db '-'\n";
     data = data + "_msgovf: db 'A operacao deu overflow!'\n";
@@ -194,7 +195,7 @@ string obtem_traducao(vector<string> palavras){
                     traducao = traducao + palavras[i];
                 }
                 traducao = traducao + "\n";
-                traducao = traducao + "call _LeerInteiro\n";
+                traducao = traducao + "call _LeerInteiro ; ---------------------- NAO FINALIZADO\n";
                 break;
             case 13: // OUTPUT
                 traducao = traducao + "push dword ";
@@ -330,7 +331,7 @@ void subrotinas_ia32(ofstream& arquivo){
 
     arquivo << "_loop:\n";
     arquivo << "mul dword [_dez]\n";
-    arquivo << "movzx ESI, byte [EBX]\n";  
+    arquivo << "movzx ESI, byte [EBX]\n";
     arquivo << "sub ESI, 30h\n";
     arquivo << "add EAX, ESI\n";
     arquivo << "inc EBX\n";
@@ -358,7 +359,8 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "call _calcula_tam\n";
     arquivo << "mov EAX, 4\n";
     arquivo << "mov EBX, 1\n";
-    arquivo << "mov ECX, [EBP + 8]\n";
+    arquivo << "mov ECX, _aux\n";
+    arquivo << "mov EDX, [_tamint]\n";
     arquivo << "int 80h\n";
     arquivo << "pop EDX\n";
     arquivo << "pop ECX\n";
@@ -366,9 +368,42 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "pop EAX\n";
     arquivo << "leave\n";
     arquivo << "ret 4\n";
+
     arquivo << "_calcula_tam:\n";
-    arquivo << "mov EAX, [EBP + 8]\n";
+    arquivo << "push EAX\n";
+    arquivo << "push EBX\n";
+    arquivo << "push ECX\n";
+    arquivo << "push EDX\n";
+    arquivo << "push ESI\n";
+    arquivo << "mov ECX, 0\n";
+    arquivo << "mov EBX, [EBP + 8]\n";
+    arquivo << "mov EAX, [EBX]\n";
+    arquivo << "_contagem:\n";
+    arquivo << "inc ECX\n";
+    arquivo << "cdq\n";
     arquivo << "div dword [_dez]\n";
+    arquivo << "cmp EDX, 0\n";
+    arquivo << "add EDX, 30h\n";
+    arquivo << "push EDX\n";
+    arquivo << "jne _contagem\n";
+    arquivo << "pop EDX\n";
+    arquivo << "add EAX, 30h\n";
+    arquivo << "push EAX\n";
+    arquivo << "mov ESI, _aux\n";
+    arquivo << "mov dword [_tamint], ECX\n";
+    arquivo << "call _pop\n";
+    arquivo << "pop ESI\n";
+    arquivo << "pop EDX\n";
+    arquivo << "pop ECX\n";
+    arquivo << "pop EBX\n";
+    arquivo << "pop EAX\n";
+    arquivo << "ret\n";
+
+    arquivo << "_pop:\n";
+    arquivo << "pop EAX\n";
+    arquivo << "mov dword [ESI], EAX\n";
+    arquivo << "inc ESI\n";
+    arquivo << "loop _pop\n";
 
 
 
@@ -409,6 +444,7 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "pop ECX\n";
     arquivo << "pop EBX\n";
     arquivo << "pop EAX\n";
+    arquivo << "leave\n";
     arquivo << "ret 4\n";
 
 
