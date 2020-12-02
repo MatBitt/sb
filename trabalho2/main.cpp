@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string.h>
 #include <map>
-#include "../include/preprocessamento.h"
-#include "../include/tradutor.h"
+#include "preprocessamento.h"
+#include "tradutor.h"
 
 using namespace std;
 

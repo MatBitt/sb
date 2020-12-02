@@ -19,6 +19,11 @@ void split(const string& linha, Container& cont){
 void escreve_linha_no_arquivo(vector<string> palavras, ofstream& arquivo){
     int i;
     for(i = 0; i< (int) palavras.size(); i++){
+        if(palavras[i] == "+"){
+            int aux = stoi(palavras[i+1]);
+            aux = aux*4;
+            palavras[i+1] = to_string(aux);
+        }
         if(i< (int) palavras.size() - 1){
             if(palavras[i+1] == ","){
                 arquivo << palavras[i];
