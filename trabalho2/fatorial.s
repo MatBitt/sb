@@ -1,33 +1,80 @@
 global _start
 section .text
 _start:
-INPUT N   ----- NAO TRADUZIDO
+push dword N
+call _LeerInteiro
 mov EAX, dword [N]
 FAT: sub EAX, dword [ONE]
 cmp EAX, 0
 je FIM
 mov dword [AUX+8], EAX
-imul dword [MULTN+2]
+imul dword [N+2]
 mov dword [N+1], EAX
 mov EAX, dword [AUX+20]
 jmp FAT
-FIM: OUTPUT N   ----- NAO TRADUZIDO
+FIM: push dword N 
+call _EscreverInteiro ; ---------------------- NAO FINALIZADO
 mov eax, 1
 mov ebx, 0
 int 80h
+_EsqueceuStop:
+mov EAX, 1
+mov EBX, 0
+int 80h
+_overflow:
+mov EAX, _msgovf
+mov EBX, _tamovf
+push EAX
+push EBX
+call _EscreverString
+jmp _EsqueceuStop
 _LeerInteiro:
 enter 0, 0
 push EAX
 push EBX
 push ECX
 push EDX
-call LeerString _aux, 5
-mov AL, byte [_aux]
-cmp AL, [_menos]
-je _negativo
-cmp AL, [_mais]
-je _positivo
-
+push ESI
+mov EAX, _aux
+mov EBX, 5
+push EAX
+push EBX
+call _LeerString
+movzx EAX, byte [_aux]
+movzx EBX, byte [_menos]
+cmp EAX, EBX
+jne _positivo
+_negativo:
+mov EBX, _aux
+inc EBX
+movzx EDX, byte [_enter]
+mov ECX, 2
+sub EAX, 30h
+neg EAX
+inc EBX
+cmp dword [EBX], EDX
+je _fimloop
+jmp _loop
+_positivo:
+mov EBX, _aux
+movzx EDX, byte [_enter]
+mov ECX, 2
+sub EAX, 30h
+inc EBX
+cmp dword [EBX], EDX
+je _fimloop
+_loop:
+mul dword [_dez]
+movzx ESI, byte [EBX]
+sub ESI, 30h
+add EAX, ESI
+inc EBX
+cmp dword [EBX], EDX
+je _fimloop
+loop _loop
+_fimloop:
+mov dword [EBP + 8], EAX
+pop ESI
 pop EDX
 pop ECX
 pop EBX
@@ -35,7 +82,25 @@ pop EAX
 leave
 ret 4
 _EscreverInteiro:
-ret
+enter 0, 0
+push EAX
+push EBX
+push ECX
+push EDX
+call _calcula_tam
+mov EAX, 4
+mov EBX, 1
+mov ECX, [EBP + 8]
+int 80h
+pop EDX
+pop ECX
+pop EBX
+pop EAX
+leave
+ret 4
+_calcula_tam:
+mov EAX, [EBP + 8]
+div dword [_dez]
 _LeerChar:
 enter 0, 0
 push EAX
@@ -47,7 +112,9 @@ mov EBX, 0
 mov ECX, _aux
 mov EDX, 2
 int 80h
-movz dword [EBP + 8], byte [_aux]
+movzx EAX, byte [_aux]
+mov EBX, dword [EBP + 8]
+mov [EBX], EAX
 pop EDX
 pop ECX
 pop EBX
@@ -110,6 +177,8 @@ AUX: resd 10
 N: resd 5 
 section .data
 _menos: db '-'
-_mais: db '+'
-_enter: db 0dh, adh 
+_msgovf: db 'A operacao deu overflow!'
+_tamovf: equ $-_msgovf
+_enter: db 0dh, 0ah 
+_dez: dd 10
 ONE: dd 1 

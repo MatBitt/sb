@@ -54,9 +54,10 @@ void traducao(string arquivo_assembly){
     bss = bss + "_aux: resd 101\n";
     data = "section .data\n";
     data = data + "_menos: db '-'\n";
-    data = data + "_mais: db '+'\n";
-    data = data + "_enter: db 0dh, adh \n";
-    data = data + "_dez: db 10\n";
+    data = data + "_msgovf: db 'A operacao deu overflow!'\n";
+    data = data + "_tamovf: equ $-_msgovf\n";
+    data = data + "_enter: db 0dh, 0ah \n";
+    data = data + "_dez: dd 10\n";
     while(getline(arquivo, linha)){
         vector<string> palavras;
         string aux;
@@ -100,16 +101,17 @@ string obtem_traducao(vector<string> palavras){
 
             case 3: // MULT
                 traducao = traducao + "imul dword [";
-                for(; i<palavras.size(); i++){
+                for(++i; i<palavras.size(); i++){
                     traducao = traducao + palavras[i];
                 }
                 traducao = traducao + "]\n";
+                // traducao = traducao + "jo _overflow\n";
                 break;
 
             case 4: // DIV
                 traducao = traducao + "cdq\n";
                 traducao = traducao + "idiv dword [";
-                for(; i<palavras.size(); i++){
+                for(++i; i<palavras.size(); i++){
                     traducao = traducao + palavras[i];
                 }
                 traducao = traducao + "]\n";
@@ -192,13 +194,15 @@ string obtem_traducao(vector<string> palavras){
                     traducao = traducao + palavras[i];
                 }
                 traducao = traducao + "\n";
-                traducao = traducao + "_call LeeInteiro\n";
+                traducao = traducao + "call _LeerInteiro\n";
                 break;
             case 13: // OUTPUT
-                for(; i<palavras.size(); i++){
+                traducao = traducao + "push dword ";
+                for(++i; i<palavras.size(); i++){
                     traducao = traducao + palavras[i] + ' ';
                 }
-                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                traducao = traducao + "\n";
+                traducao = traducao + "call _EscreverInteiro ; ---------------------- NAO FINALIZADO\n";
                 break;
             case 14: // STOP
                 traducao = traducao + "mov eax, 1\n";
@@ -206,21 +210,23 @@ string obtem_traducao(vector<string> palavras){
                 traducao = traducao + "int 80h\n";
                 break;
             case 15: // C_INPUT
-                traducao = traducao + "push dword [";
+                traducao = traducao + "push dword ";
                 for(++i; i<palavras.size(); i++){
                     traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "]\n";
-                traducao = traducao + "_LeerChar";
+                traducao = traducao + "\n";
+                traducao = traducao + "call _LeerChar\n";
                 break;
             case 16: // C_OUTPUT
-                for(; i<palavras.size(); i++){
-                    traducao = traducao + palavras[i] + ' ';
+                traducao = traducao + "push dword ";
+                for(++i; i<palavras.size(); i++){
+                    traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "  ----- NAO TRADUZIDO\n";
+                traducao = traducao + "\n";
+                traducao = traducao + "call _EscreverChar\n";
                 break;
             case 19: // S_INPUT
-                traducao = traducao + "push dword ["; // End de memoria
+                traducao = traducao + "push dword "; // End de memoria
                 for(++i; i<palavras.size(); i++){
                     if(palavras[i][palavras[i].length()-1] == ','){
                         traducao = traducao + palavras[i].substr(0, palavras[i].find(","));
@@ -228,12 +234,12 @@ string obtem_traducao(vector<string> palavras){
                     }
                     traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "]\n";
+                traducao = traducao + "\n";
                 traducao = traducao + "push dword " + palavras[++i] + "\n";
                 traducao = traducao + "call _LeerString\n";
                 break;
             case 20: // S_OUTPUT
-                traducao = traducao + "push dword ["; // End de memoria
+                traducao = traducao + "push dword "; // End de memoria
                 for(++i; i<palavras.size(); i++){
                     if(palavras[i][palavras[i].length()-1] == ','){
                         traducao = traducao + palavras[i].substr(0, palavras[i].find(","));
@@ -241,7 +247,7 @@ string obtem_traducao(vector<string> palavras){
                     }
                     traducao = traducao + palavras[i];
                 }
-                traducao = traducao + "]\n";
+                traducao = traducao + "\n";
                 traducao = traducao + "push dword " + palavras[++i] + "\n"; // Tamanho
                 traducao = traducao + "call _EscreverString\n";
                 break;
@@ -270,6 +276,20 @@ void section_data(vector<string> palavras, string& bss, string& data){
 }
 
 void subrotinas_ia32(ofstream& arquivo){
+    arquivo << "_EsqueceuStop:\n";
+    arquivo << "mov EAX, 1\n";
+    arquivo << "mov EBX, 0\n";
+    arquivo << "int 80h\n";
+
+    arquivo << "_overflow:\n";
+    arquivo << "mov EAX, _msgovf\n";
+    arquivo << "mov EBX, _tamovf\n";
+    arquivo << "push EAX\n";
+    arquivo << "push EBX\n";
+    arquivo << "call _EscreverString\n";
+    arquivo << "jmp _EsqueceuStop\n";
+
+
     arquivo << "_LeerInteiro:\n";
     arquivo << "enter 0, 0\n";
     arquivo << "push EAX\n";
@@ -277,44 +297,49 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "push ECX\n";
     arquivo << "push EDX\n";
     arquivo << "push ESI\n";
-    arquivo << "call LeerString _aux, 5\n";
-    arquivo << "movz EAX, byte [_aux]\n";
-    arquivo << "movz EBX, byte [_menos]\n";
+    arquivo << "mov EAX, _aux\n";
+    arquivo << "mov EBX, 5\n";
+    arquivo << "push EAX\n";
+    arquivo << "push EBX\n";
+    arquivo << "call _LeerString\n";
+    arquivo << "movzx EAX, byte [_aux]\n";
+    arquivo << "movzx EBX, byte [_menos]\n";
     arquivo << "cmp EAX, EBX\n";
     arquivo << "jne _positivo\n";
 
     arquivo << "_negativo:\n";
     arquivo << "mov EBX, _aux\n";
-    arquivo << "mov EDX, word [_enter]\n";
+    arquivo << "inc EBX\n";
+    arquivo << "movzx EDX, byte [_enter]\n";
     arquivo << "mov ECX, 2\n";
     arquivo << "sub EAX, 30h\n";
     arquivo << "neg EAX\n";
     arquivo << "inc EBX\n";
-    arquivo << "cmp word [EBX], EDX\n";
+    arquivo << "cmp dword [EBX], EDX\n";
     arquivo << "je _fimloop\n";
-    arquivo << "jmp _loop:\n";
+    arquivo << "jmp _loop\n";
 
     arquivo << "_positivo:\n";
     arquivo << "mov EBX, _aux\n";
-    arquivo << "mov EDX, word [_enter]\n";
+    arquivo << "movzx EDX, byte [_enter]\n";
     arquivo << "mov ECX, 2\n";
     arquivo << "sub EAX, 30h\n";
     arquivo << "inc EBX\n";
-    arquivo << "cmp word [EBX], EDX\n";
+    arquivo << "cmp dword [EBX], EDX\n";
     arquivo << "je _fimloop\n";
 
     arquivo << "_loop:\n";
-    arquivo << "mul [_dez]\n";
-    arquivo << "movz ESI, byte [EBX]\n";
+    arquivo << "mul dword [_dez]\n";
+    arquivo << "movzx ESI, byte [EBX]\n";  
     arquivo << "sub ESI, 30h\n";
-    arquivo << "add EAX, ESI";
+    arquivo << "add EAX, ESI\n";
     arquivo << "inc EBX\n";
-    arquivo << "cmp word [EBX], EDX\n";
+    arquivo << "cmp dword [EBX], EDX\n";
     arquivo << "je _fimloop\n";
     arquivo << "loop _loop\n";
 
     arquivo << "_fimloop:\n";
-    arquivo << "mov dword [EBP + 8], EAX";
+    arquivo << "mov dword [EBP + 8], EAX\n";
     arquivo << "pop ESI\n";
     arquivo << "pop EDX\n";
     arquivo << "pop ECX\n";
@@ -334,7 +359,7 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "mov EAX, 4\n";
     arquivo << "mov EBX, 1\n";
     arquivo << "mov ECX, [EBP + 8]\n";
-    arquivo << "mov EDX, \n";
+    arquivo << "int 80h\n";
     arquivo << "pop EDX\n";
     arquivo << "pop ECX\n";
     arquivo << "pop EBX\n";
@@ -343,7 +368,7 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "ret 4\n";
     arquivo << "_calcula_tam:\n";
     arquivo << "mov EAX, [EBP + 8]\n";
-    arquivo << "div 10"
+    arquivo << "div dword [_dez]\n";
 
 
 
@@ -358,7 +383,9 @@ void subrotinas_ia32(ofstream& arquivo){
     arquivo << "mov ECX, _aux\n";
     arquivo << "mov EDX, 2\n";
     arquivo << "int 80h\n";
-    arquivo << "movz dword [EBP + 8], byte [_aux]\n"; // TESTAAAAAARRR
+    arquivo << "movzx EAX, byte [_aux]\n";
+    arquivo << "mov EBX, dword [EBP + 8]\n";
+    arquivo << "mov [EBX], EAX\n";
     arquivo << "pop EDX\n";
     arquivo << "pop ECX\n";
     arquivo << "pop EBX\n";
